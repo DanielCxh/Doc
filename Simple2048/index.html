@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+
+<title>2048</title>
+<!-- Triplety Version: 1.0.0 -->
+
+<style>
+
+
+.title {
+  background-color: gray;
+  text-align: center;
+  width: 400px;
+  height: 40px; 
+  font-size: 30px;
+  margin-left:auto;
+  margin-right:auto;
+  margin-top: auto;
+  position: relative;
+}
+
+.myTable {
+  width:400px;
+  height:400px;
+  background-color: white;
+  border-color: white;
+  text-align: center;
+}
+
+td {
+  width:20px;
+  height: 20px;
+  max-width:20px;
+  max-height: 20px;
+  color: white;
+}
+
+.stepDefault {
+  background-color: white;
+}
+
+.stepState1 {
+  background-color: yellow;
+}
+
+.bottomDiv {
+  background-color: rgb(200,200,100);
+  text-align: center;
+  width: 400px;
+  height: 40px; 
+  font-size: 40px;
+  margin-left:auto;
+  margin-right:auto;
+}
+
+</style>
+
+
+</head>
+
+<body>
+<div class='title' onclick="onStart()">Start!</div>
+<div align='center'>
+  
+<table class='myTable' border="1">
+  <tr>
+    <td class='r0c0' onclick="onClickItem()">0</td>
+    <td class='r0c1'>0</td>
+    <td class='r0c2'>0</td>
+    <td class='r0c3'>0</td>
+  </tr>
+  <tr>
+    <td class='r1c0'>0</td>
+    <td class='r1c1'>0</td>
+    <td class='r1c2'>0</td>
+    <td class='r1c3'>0</td>
+  </tr>
+  <tr>
+    <td class='r2c0'>0</td>
+    <td class='r2c1'>0</td>
+    <td class='r2c2'>0</td>
+    <td class='r2c3'>0</td>
+  </tr>
+  <tr>
+    <td class='r3c0'>0</td>
+    <td class='r3c1'>0</td>
+    <td class='r3c2'>0</td>
+    <td class='r3c3'>0</td>
+  </tr>
+</table>
+
+  
+</div>
+
+<div class="bottomDiv">
+  
+</div>
+
+<script>
+
+var _CrtStatus = 0;
+var _Score = 0;
+
+function onClickItem() {
+  alert(1);
+
+  var me = this;
+  me.randomCreatBlock();
+}
+
+// The result.
+var matrix = [
+  [0, 0, 0, 0],
+  [0, 0, 0, 0],
+  [0, 0, 0, 0],
+  [0, 0, 0, 0]
+];
+
+/* Funtions */
+function onKeyPressed() {
+  alert(2);
+}
+
+function keyDown(e) {
+
+  var keycode = e.which;
+  var UP = 38;
+  var DOWN = 40;
+  var LEFT = 37;
+  var RIGHT = 39;
+
+  var flag = 0;
+  var bMoved = false;
+
+  // Do the actions.
+  switch (keycode) {
+  case UP:
+      bMoved = onTurnUp();
+
+    break;
+  case DOWN:
+    bMoved = onTurnDown();
+    break;
+  case LEFT:
+    bMoved = onTurnLeft();
+
+    break;
+  case RIGHT:
+    bMoved = onTurnRight();
+
+    break;
+  default:
+    // Do nothing.
+    flag = 1;
+    break;
+  }
+
+  if (1 === flag) {
+    return;
+  }
+  var realkey = String.fromCharCode(e.which);
+
+
+  // Check if has empty block.
+  if (false === checkContinue()) {
+    return;
+  }
+
+  // Create a new block.
+  var times = 0;
+
+  while (1 != times && true == bMoved) {
+    if (0 != randomCreatBlock(16)) {
+      // Do nothing.
+    } else {
+      times++;
+    }
+  }
+
+  // Redraw the matrix.
+  redrawMatrix();
+}
+
+// Add key action.
+document.onkeydown = keyDown;
+
+// Game start.
+function onStart() {
+
+  // Get element.
+  var title = document.getElementsByClassName("title");
+  var table = document.getElementsByClassName("myTable");
+  var cells = table[0].getElementsByTagName('td');
+
+  // If current is start, set as Restart.
+  if (0 === _CrtStatus) {
+    title[0].innerHTML = "Restart!";
+    _CrtStatus = 1;
+  }
+  // If current is restart, set as Start.
+  else if (1 === _CrtStatus) {
+    title[0].innerHTML = "Start!";
+    _CrtStatus = 0;
+  }
+
+  // Clear the matrix.
+  clearMatrix();
+
+  var times = 0;
+
+  while (2 != times) {
+    if (0 != randomCreatBlock(cells.length)) {
+      // Do nothing.
+    } else {
+      times++;
+    }
+  }
+
+  // console.log(matrix);
+
+  //  alert(''+ row+':'+col);
+  // Initialize Matrix.
+  for (var i = 0; i < 4; i++) {
+    console.log(matrix[i]);
+  }
+
+
+  redrawMatrix();
+}
+
+function checkContinue() {
+  var bRst = false;
+
+  for (var i = 0; i < 4; i++) {
+    for (var j = 0; j < 4; j++) {
+      if (0 === matrix[i][j]) {
+        return true;
+      }
+    }
+  }
+
+  return bRst;
+}
+// This function is used to redraw the matrix.
+function redrawMatrix() {
+  for (var i = 0; i < 4; i++) {
+    for (var j = 0; j < 4; j++) {
+      if (0 != matrix[i][j]) {
+        var className = 'r' + i + 'c' + j;
+        console.log(className);
+        var ele = document.getElementsByClassName(className);
+        ele[0].setAttribute('style', 'background-color:' + getItemColor(matrix[i][j]));
+        ele[0].innerHTML = "" + matrix[i][j];
+        console.log(getItemColor(matrix[i][j]));
+        //addClass(ele[0], 'stepState1');    
+      } else {
+        var className = 'r' + i + 'c' + j;
+        var ele = document.getElementsByClassName(className);
+        ele[0].setAttribute('style', 'background-color: white');
+        ele[0].innerHTML = "0";
+      }
+    }
+  }
+  
+  var score = document.getElementsByClassName('bottomDiv');
+  score[0].innerHTML = " " + _Score;
+}
+// Get random value by a length.
+function getRandomValue(len) {
+  return Math.floor(Math.random() * len);
+}
+
+// Game over.
+function onEnd() {
+
+}
+
+// Get the color of the item by value.
+function getItemColor(num) {
+  var color = 'rgb';
+
+  var red = Math.round(255 * 255 / num) % 255;
+  var green = Math.round(255 * 155 / num) % 255;
+  var blue = Math.round(255 * 55 / num) % 250;
+
+  color = 'rgb(' + red + ',' + green + ',' + blue + ')';
+
+  return color;
+}
+// Action
+function onTurnDown() {
+  var bMoved = true;
+  // col
+  for (var i = 0; i < matrix[0].length; i++) {
+    var tmp = [0, 0, 0, 0];
+    var k = 3;
+    
+    // row
+    for (var j = (matrix.length - 1); j >= 0; j--) {
+
+      if (0 != matrix[j][i]) {
+        tmp[k] = matrix[j][i];
+        k--;
+      } 
+    }
+    
+    ///////////
+
+    for (var n = 3; n > 0; n--) {
+
+      if (tmp[n] == 0) {
+        break;
+      }
+
+      if (tmp[n] == tmp[n - 1]) {
+       
+        tmp[n] += tmp[n - 1];
+        _Score += tmp[n];
+        if (n - 1 == 0) {
+          tmp[n - 1] = 0;
+        } else {
+          for (var p = n - 1; p > 0; p--) {
+            tmp[p] = tmp[p - 1];
+            tmp[p - 1] = 0;
+          }
+        }
+      }
+      
+    }
+
+    ////////////
+    // Save the result to matrix.
+    for (var m = 0; m < 4; m++) {
+
+      matrix[m][i] = tmp[m];
+    }
+
+
+  }
+  
+  return bMoved;
+}
+
+function onTurnUp() {
+  var bMoved = false;
+  // col
+  for (var i = 0; i < matrix[0].length; i++) {
+    var tmp = [0, 0, 0, 0];
+    var k = 0;
+    // row
+    for (var j = 0; j < 4; j++) {
+
+      if (0 != matrix[j][i]) {
+        tmp[k] = matrix[j][i];
+        k++;
+        
+      }
+    }
+    //////////
+    for (var n = 0; n < 3; n++) {
+
+      if (tmp[n] == 0) {
+        break;
+      }
+
+      if (tmp[n] == tmp[n + 1]) {
+        bMoved = true;
+        tmp[n] += tmp[n + 1];
+        _Score += tmp[n];
+        if (n + 1 == 3) {
+          tmp[n + 1] = 0;
+        } else {
+
+          for (var p = n + 1; p < 3; p++) {
+            tmp[p] = tmp[p + 1];
+          }
+        }
+      }
+    }
+    //////////
+    console.log(tmp);
+    //
+    for (var m = 0; m < 4; m++) {
+
+      matrix[m][i] = tmp[m];
+    }
+
+
+  }
+  
+  return bMoved;
+}
+
+function onTurnLeft() {
+  var bMoved  = false;
+  // row
+  for (var i = 0; i < matrix.length; i++) {
+    var tmp = [0, 0, 0, 0];
+    var k = 0;
+    // col
+    for (var j = 0; j < 4; j++) {
+
+      if (0 != matrix[i][j]) {
+        tmp[k] = matrix[i][j];
+        k++;
+        bMoved = true;
+      }
+    }
+
+    /*
+    for (var n = 0; n < 3; n++){
+      
+      if(tmp[n] == 0) {
+        break;
+      }
+      
+      if (tmp[n] == tmp[n+1])
+      {
+        tmp[n] += tmp[n+1];
+        
+        for(var p = n+1; p < 3; p++){
+          tmp[p] = tmp[p+1];
+          tmp[p+1] =0;
+        }
+      }
+    }
+    */
+
+    for (var n = 0; n < 3; n++) {
+
+      if (tmp[n] == 0) {
+        break;
+      }
+
+      if (tmp[n] == tmp[n + 1]) {
+        tmp[n] += tmp[n + 1];
+        _Score += tmp[n];
+        if (n + 1 == 3) {
+          tmp[n + 1] = 0;
+        } else {
+          for (var p = n + 1; p < 3; p++) {
+            tmp[p] = tmp[p + 1];
+            tmp[p + 1] = 0;
+          }
+        }
+      }
+    }
+
+    console.log(tmp);
+    //
+    for (var m = 0; m < 4; m++) {
+
+      matrix[i][m] = tmp[m];
+    }
+
+
+  }
+  
+  return bMoved;
+}
+
+function onTurnRight() {
+  var bMoved = false;
+  // row
+  for (var i = 0; i < matrix.length; i++) {
+    var tmp = [0, 0, 0, 0];
+    var k = 3;
+    // col
+    for (var j = 3; j >= 0; j--) {
+
+      if (0 != matrix[i][j]) {
+        tmp[k] = matrix[i][j];
+        k--;
+        bMoved = true;
+      }
+    }
+
+    /*
+    for (var n = 3; n > 0; n--){
+      
+      if(tmp[n] == 0) {
+        break;
+      }
+      
+      if (tmp[n] == tmp[n-1])
+      {
+        tmp[n] += tmp[n-1];
+        
+        for(var p = n-1; p > 3; p--){
+          tmp[p] = tmp[p-1];
+          tmp[p-1] =0;
+        }
+      }
+    }*/
+
+    for (var n = 3; n > 0; n--) {
+
+      if (tmp[n] == 0) {
+        break;
+      }
+
+      if (tmp[n] == tmp[n - 1]) {
+        tmp[n] += tmp[n - 1];
+        _Score += tmp[n];
+        if (n - 1 == 0) {
+          tmp[n - 1] = 0;
+        } else {
+
+          for (var p = n - 1; p > 0; p--) {
+            tmp[p] = tmp[p - 1];
+            tmp[p - 1] = 0;
+          }
+        }
+      }
+    }
+    console.log(tmp);
+    //
+    for (var m = 0; m < 4; m++) {
+
+      matrix[i][m] = tmp[m];
+    }
+
+
+  }
+  
+  return bMoved;
+}
+
+function hasClass(elements, cName) {
+  return !!elements.className.match(new RegExp("(\\s|^)" + cName + "(\\s|$)")); // ( \\s|^ ) 判断前面是否有空格 （\\s | $ ）判断后面是否有空格 两个感叹号为转换为布尔值 以方便做判断 
+};
+
+// This function is used to 
+// crean a new block by random
+function randomCreatBlock(len) {
+
+  var value = getRandomValue(len);
+  var row = Math.floor(value / 4);
+  var col = value % 4;
+
+  //alert('' + row + ':' + col);
+
+  var temp = matrix[row][col];
+  if (0 === temp) {
+    matrix[row][col] += 1;
+  }
+
+  return temp;
+}
+
+// This function used to clear the matrix.
+function clearMatrix() {
+
+  for (var i = 0; i < matrix.length; i++) {
+    for (var j = 0; j < matrix[0].length; j++) {
+      matrix[i][j] = 0;
+    }
+  }
+}
+
+// Add css class.
+function addClass(elements, cName) {
+  if (!hasClass(elements, cName)) {
+    elements.className += " " + cName;
+  };
+}
+
+
+
+function removeClass(elements, cName) {
+  if (hasClass(elements, cName)) {
+    elements.className = elements.className.replace(new RegExp("(\\s|^)" + cName + "(\\s|$)"), " "); // replace方法是替换 
+  }
+};
+</script>
+
+
+</body>
+
+</html>
