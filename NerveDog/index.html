@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+
+<title>NerveDog</title>
+<!-- Triplety Version: 1.0.0 -->
+
+<style>
+
+td{
+  -webkit-border-radius: 15px;
+}
+
+#infoBar{
+  background-color: grey;
+  font-size: 30px;
+  position: absolute;
+  top:100px;
+  width:200px; 
+}
+
+.dog {
+  background-color: blue;
+  position: absolute;
+  width : 20px;
+  height: 20px;
+  visibility: hidden;
+}
+
+</style>
+
+
+</head>
+
+<body>
+
+<input type="text" id="line">行数
+<input type="text" id="list">列数
+<input type="button" value="添加表格" onclick="autocreate()">
+<div id="d1"></div>
+
+<div id="infoBar" onclick="gameStart()">
+  <p> GAME START</p>
+</div>
+
+<div class="dog"></div>
+
+<script src="library/jquery-2.0.3.min.js"></script>
+
+<script>
+
+var GAME_STATUS = {'START':0,'STOP':1,'PAUSE':2};
+var matrix = null;
+
+var totalLine = 0;
+var totalList = 0;
+
+var level = 1;
+var steps = 0;
+var gameStatus = GAME_STATUS.START;
+
+var cellSize = 30;
+
+var DOG_LOCATION = {'LINE':0, 'LIST':0};
+
+// Dog move direction.
+var DIRECTION = {'LEFT':0,
+                 'RIGHT':1,
+                 'UP':2,
+                 'DOWN':3,
+                 'LEFT_UP':4,
+                 'LEFT_DOWN':5,
+                 'RIGHT_UP':6,
+                 'RIGHT_DOWN':7};
+
+// The direction that dog can move.
+var canMove = [];
+
+function autocreate(){
+    // Create Table
+    var table = document.createElement("table");
+    table.setAttribute("border","1");
+    table.setAttribute("id", "mainTable");
+    //table.setAttribute("background-color","red");
+    
+    //获取行数值
+    var line=document.getElementById("line").value;
+    //获取列数值
+    var list=document.getElementById("list").value;
+  
+    totalLine = new Number(line);
+    totalList = new Number(list);
+   
+    createGameMatrix();
+  
+    var tableWidth =  cellSize * list;
+    var tableHeight = cellSize * line;
+  
+  
+   // matrix = [line][list];
+    table.setAttribute("width", tableWidth + "px");
+    table.setAttribute("height", tableHeight + "px");
+    table.setAttribute("align", "center");
+  
+  for(var i=0;i<line;i++){
+        //alert(line);
+        //创建tr
+        var tr=document.createElement("tr");
+        for(var j=0;j<list;j++){
+            //alert(list);
+            //创建td
+            var td=document.createElement("td");
+            td.setAttribute("bgColor", "white");
+            // Add click event.
+            td.setAttribute("onClick", "onCellClick(" + i+"," +j+")");
+            tr.appendChild(td);
+            }
+            table.appendChild(tr);
+           
+        }
+        //table.rows[i].cells[j].onClick=onC;
+  
+        document.getElementById("d1").appendChild(table);
+    }
+
+// This funciton do the action while click cell.
+function onCellClick(line, list) {
+  
+  //setCellChecked(line, list);
+   matrix[line][list] = 1;
+  //console.error(matrix[line,list]);
+  dogMove();
+  redraw();
+ 
+}
+
+// Set the block locked.
+function setCellChecked(line, list){
+  var table = document.getElementById("mainTable");
+  table.rows[line].cells[list].setAttribute("bgColor", "red");
+}
+
+// Redraw the screen.
+function redraw(){
+
+  for(var i = 0; i < totalLine; i++) {
+    for(var j = 0; j < totalList; j++) {
+      if(true === isCellFull(i, j)){
+           setCellChecked(i, j);
+         }
+    }
+  }
+}
+
+// Start the game.
+function gameStart(){
+
+  
+  // Initialize
+  var table = document.getElementById("mainTable");
+  if (null != table) {
+    document.getElementById("d1").removeChild(table);
+    console.error("move");
+  }
+  autocreate();
+  dogLocation();
+  createDefaultBlock();
+  redraw();
+}
+
+// Auto create default block.
+function createDefaultBlock(){
+  var times = 0;
+  times = (totalLine * totalList) / (level * totalLine);
+  
+  for(var i = 0; i < times; i++) {
+    var random = parseInt(Math.random() * totalLine * totalList);
+  
+    var nLine = parseInt(random / totalLine);
+    var nList = parseInt(random % totalList);
+    console.error(random + ":" + nLine + ":" + nList);
+    if (true === isCellFull(nLine, nList)){
+      i--;
+    } else {
+      matrix[nLine][nList] = 1;
+    }
+  }
+}
+
+// Check block.
+function isCellFull(row, col){
+  if (0 != matrix[row][col]) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
+// Game end.
+function gameEnd(){
+      alert("You lost");
+}
+
+// Dog location.
+function dogLocation() {
+  
+  
+  DOG_LOCATION.LIST = parseInt(totalList / 2);
+  DOG_LOCATION.LINE = parseInt(totalLine / 2);
+  
+  setDogLocation(DOG_LOCATION.LINE, DOG_LOCATION.LIST);
+  console.error("line" + DOG_LOCATION.LINE +": list"+ DOG_LOCATION.LIST);
+}
+
+function setDogLocation(x, y){
+  var table = document.getElementById("mainTable");
+  var tableWidth = table.offsetWidth;
+  var tableHeight = table.offsetHeight;
+  var tableLeft = table.offsetLeft;
+  var tableTop = table.offsetTop;
+  
+  var dog = document.getElementsByClassName("dog");
+  
+  //var dogLeft = tableLeft + (tableWidth / 2);
+  //var dogTop = tableTop + (tableHeight / 2);
+  
+  var dogLeft = tableLeft + cellSize * y;
+  var dogTop = tableTop + cellSize * x;
+  
+  // Set dog location.
+  dog[0].style.top = dogTop + "px";
+  dog[0].style.left = dogLeft + "px";
+  
+  // Show dog.
+  dog[0].style.visibility= "visible";
+}
+
+// Dog move.
+function dogMove() {
+  if(0 === DOG_LOCATION.LINE
+     || 0 === DOG_LOCATION.LIST
+     || (totalList - 1) === DOG_LOCATION.LIST
+     || (totalLine - 1) === DOG_LOCATION.LINE) {
+    // Game over
+    gameEnd();
+    return;
+  }
+  
+  if (0 === matrix[DOG_LOCATION.LINE][DOG_LOCATION.LIST - 1]) {
+    canMove.push(DIRECTION.LEFT);
+  }
+  if (0 === matrix[DOG_LOCATION.LINE][DOG_LOCATION.LIST + 1]){
+    canMove.push(DIRECTION.RIGHT);
+  }
+  if (0 === matrix[DOG_LOCATION.LINE - 1][DOG_LOCATION.LIST]) {
+    canMove.push(DIRECTION.UP);
+  }
+  if (0 === matrix[DOG_LOCATION.LINE + 1][DOG_LOCATION.LIST]) {
+    canMove.push(DIRECTION.DOWN);
+  }
+  if (0 === matrix[DOG_LOCATION.LINE - 1][DOG_LOCATION.LIST - 1]){
+    canMove.push(DIRECTION.LEFT_UP);
+  }
+  if (0 === matrix[DOG_LOCATION.LINE + 1][DOG_LOCATION.LIST - 1]) {
+    canMove.push(DIRECTION.LEFT_DOWN);
+  }
+  if (0 === matrix[DOG_LOCATION.LINE - 1][DOG_LOCATION.LIST + 1]) {
+    canMove.push(DIRECTION.RIGHT_UP);
+  }
+  if (0 === matrix[DOG_LOCATION.LINE + 1][DOG_LOCATION.LIST + 1]) {
+    canMove.push(DIRECTION.RIGHT_DOWN);
+  }
+                                          
+    if (0 === canMove.length) {
+      // Win
+     alert("You Win!");
+    } else {
+      // Move.
+      var random =  parseInt(Math.random() * canMove.length);
+      var moved = canMove[random];
+      console.error(moved);
+      switch(moved){
+        case DIRECTION.LEFT:
+              DOG_LOCATION.LIST--;
+              break;
+        case DIRECTION.RIGHT:
+              DOG_LOCATION.LIST++;
+              break;
+        case DIRECTION.UP:
+              DOG_LOCATION.LINE--;
+              break;
+        case DIRECTION.DOWN:
+              DOG_LOCATION.LINE++;
+              break;
+        case DIRECTION.LEFT_UP:
+              DOG_LOCATION.LINE--;
+              DOG_LOCATION.LIST--;
+              break;
+        case DIRECTION.LEFT_DOWN:
+              DOG_LOCATION.LINE++;
+              DOG_LOCATION.LIST--;
+              break;
+        case DIRECTION.RIGHT_UP:
+              DOG_LOCATION.LINE--;
+              DOG_LOCATION.LIST++;
+              break;
+        case DIRECTION.RIGHT_DOWN:
+              DOG_LOCATION.LINE++;
+              DOG_LOCATION.LIST++;
+              break;
+        default:
+          break;
+      }
+      
+      //
+      setDogLocation(DOG_LOCATION.LINE, DOG_LOCATION.LIST);
+    }
+   
+  // Clear.
+  canMove = [];
+}
+
+// Create the matrix.
+function createGameMatrix(){
+
+   matrix = new Array();
+  
+   for(var row = 0; row < totalLine; row++) {
+       matrix[row] = new Array();
+       for(var col = 0; col < totalList; col++)   {
+         matrix[row][col] = 0;
+       } 
+   }
+}
+</script>
+
+
+</body>
+
+</html>
